@@ -1,0 +1,173 @@
+package com.example.databasetext.datautil;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by panzq on 2017/4/11.
+ */
+public class DataHelper {
+
+    // 数据库名称
+    private static String DB_NAME = "weibo.db";
+    // 数据库版本
+    private static int DB_VERSION = 2;
+    private SQLiteDatabase db;
+    private SqliteHelper dbHelper;
+
+    public DataHelper(Context context)
+    {
+        dbHelper = new SqliteHelper(context,DB_NAME,null,DB_VERSION);
+        db = dbHelper.getWritableDatabase();
+    }
+    public void Close()
+    {
+        db.close();
+        dbHelper.close();
+    }
+    // 获取users表中的UserID、Access Token、Access Secret的记录
+    public List<UserInfo> GetUserList(Boolean isSimple)
+    {
+        List<UserInfo> userList = new ArrayList<UserInfo>();
+        Cursor cursor = db.query(SqliteHelper.TB_NAME,null,null,null,null,null,UserInfo.ID+" DESC");
+        cursor.moveToFirst();
+        while(!cursor.isAfterLast()&&(cursor.getString(1)!=null))
+        {
+            UserInfo user = new UserInfo();
+            user.setId(cursor.getString(cursor.getColumnIndex(UserInfo.ID)));
+            user.setUserId(cursor.getString(cursor.getColumnIndex(UserInfo.USERID)));
+            user.setUserName(cursor.getString(cursor.getColumnIndex(UserInfo.USERNAME)));
+            user.setToken(cursor.getString(cursor.getColumnIndex(UserInfo.TOKEN)));
+            user.setTokenSecret(cursor.getString(cursor.getColumnIndex(UserInfo.TOKENSECRET)));
+            if (!isSimple)
+            {
+                ByteArrayInputStream stream = new ByteArrayInputStream(cursor.getBlob(cursor.getColumnIndex(UserInfo.USERICON)));
+                Drawable icon = Drawable.createFromStream(stream,"image");
+                user.setUserIcon(icon);
+            }
+            userList.add(user);
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        return userList;
+    }
+
+    // 判断users表中的是否包含某个UserID的记录
+    public boolean HaveUserInfo(String userId)
+    {
+        boolean b =false;
+        Cursor cursor = db.query(SqliteHelper.TB_NAME,null,UserInfo.USERID+"=?",new String[]{userId},null,null,null);
+        b = cursor.moveToFirst();
+        cursor.close();
+        return b;
+    }
+
+    // 更新users表的记录，根据UserId更新用户昵称和用户图标
+    public int UpdateUserInfoByUserID(String userId,String userName)
+    {
+        ContentValues values = new ContentValues();
+        values.put(UserInfo.USERNAME,userName);
+        // 构造SQLite的Content对象，这里也可以使用raw
+        int id = db.update(SqliteHelper.TB_NAME,values,UserInfo.USERID+"=?",new String[]{userId});
+        return id;
+    }
+    // 更新users表的记录，根据UserId更新用户昵称和用户图标
+    public int UpdateUserInfo(String userName, Bitmap userIcon,String userId)
+    {
+        ContentValues values = new ContentValues();
+        values.put(UserInfo.USERNAME,userName);
+        //BLOB 类型
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        // 将Bitmap压缩成PNG编码，质量为100%存储
+        userIcon.compress(Bitmap.CompressFormat.PNG,100,os);
+        // 构造SQLite的Content对象，这里也可以使用raw
+        values.put(UserInfo.USERICON,os.toByteArray());
+        int id = db.update(SqliteHelper.TB_NAME,values,UserInfo.USERID+"=?",new String[]{userId});
+        return id;
+    }
+    // 更新users表的记录
+    public int UpdateUserInfo(UserInfo user)
+    {
+        ContentValues values = new ContentValues();
+        values.put(UserInfo.USERID,user.getUserId());
+        values.put(UserInfo.TOKEN,user.getToken());
+        values.put(UserInfo.TOKENSECRET,user.getTokenSecret());
+        int id = db.update(SqliteHelper.TB_NAME,values,UserInfo.USERID+"="+user.getUserId(),null);
+        return id;
+    }
+    // 添加users表的记录
+    public Long SaveUserInfo(UserInfo user)
+    {
+        ContentValues values = new ContentValues();
+        values.put(UserInfo.USERID,user.getUserId());
+        values.put(UserInfo.USERNAME,user.getUserName());
+        values.put(UserInfo.TOKEN,user.getToken());
+        values.put(UserInfo.TOKENSECRET,user.getTokenSecret());
+        Long uid = db.insert(SqliteHelper.TB_NAME,UserInfo.ID,values);
+        return uid;
+    }
+    // 添加users表的记录
+    public Long saveUserInfo(UserInfo user,byte[] icon)
+    {
+        ContentValues values = new ContentValues();
+        values.put(UserInfo.USERID,user.getUserId());
+        values.put(UserInfo.USERNAME,user.getUserName());
+        values.put(UserInfo.TOKEN,user.getToken());
+        values.put(UserInfo.TOKENSECRET,user.getTokenSecret());
+        if (icon != null)
+            values.put(UserInfo.USERICON,icon);
+        Long uid =db.insert(SqliteHelper.TB_NAME,UserInfo.ID,values);
+        return uid;
+    }
+    // 删除users表的记录
+    public int DelUserInfo(String userId)
+    {
+        int id = db.delete(SqliteHelper.TB_NAME,UserInfo.USERID+"=?",new String[]{userId});
+        return id;
+    }
+    // 删除users表所有记录
+    public int DelAllUserInfo()
+    {
+        int id = db.delete(SqliteHelper.TB_NAME,null,null);
+        return id;
+    }
+    public UserInfo getUserByName(String userName,List<UserInfo> userList)
+    {
+        UserInfo userInfo = null;
+        int size = userList.size();
+        for (int i =0 ;i<size;i++)
+        {
+            if (userName.equalsIgnoreCase(userList.get(i).getUserName()))
+            {
+                userInfo = userList.get(i);
+                break;
+            }
+        }
+        return userInfo;
+    }
+    public UserInfo getUserByUserID(String userId,List<UserInfo> userList)
+    {
+        UserInfo userInfo = null;
+        int size = userList.size();
+        for (int i =0 ;i<size;i++)
+        {
+            if (userId.equalsIgnoreCase(userList.get(i).getUserId()))
+            {
+                userInfo = userList.get(i);
+                break;
+            }
+        }
+        return userInfo;
+    }
+
+}
