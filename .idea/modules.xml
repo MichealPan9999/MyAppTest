@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/MyAppTest.iml" filepath="$PROJECT_DIR$/MyAppTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/databasetext/databasetext.iml" filepath="$PROJECT_DIR$/databasetext/databasetext.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mvptest/mvptest.iml" filepath="$PROJECT_DIR$/mvptest/mvptest.iml" />
       <module fileurl="file://$PROJECT_DIR$/myapp_1/myapp_1.iml" filepath="$PROJECT_DIR$/myapp_1/myapp_1.iml" />
       <module fileurl="file://$PROJECT_DIR$/myapplication1/myapplication1.iml" filepath="$PROJECT_DIR$/myapplication1/myapplication1.iml" />
       <module fileurl="file://$PROJECT_DIR$/staringup/staringup.iml" filepath="$PROJECT_DIR$/staringup/staringup.iml" />

@@ -1,1 +1,1 @@
-include ':app', ':myapp_1', ':myapplication1', ':staringup', ':databasetext'
+include ':app', ':myapp_1', ':myapplication1', ':staringup', ':databasetext', ':mvptest'
